@@ -10,6 +10,7 @@ path = [
     ".github/prompts/**",
     ".github/copilot-instructions.md",
     ".gitignore",
+    "bom.json",
     "CHANGELOG.md",
     "CLAUDE.md",
     "CONTRIBUTING.md",

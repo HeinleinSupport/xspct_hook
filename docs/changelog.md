@@ -27,6 +27,7 @@ All commits follow [Conventional Commits](https://www.conventionalcommits.org/en
 
 ### Build
 
+- Add a checked-in CycloneDX dependency SBOM with generation and release prompts and EUPL metadata.
 - Add package metadata, development tooling and the smoke client's runtime HTTP dependency.
 - Add EUPL-1.2 REUSE annotations for examples, repository documentation and generated caches.
 

@@ -11,20 +11,22 @@ Generate the dependency SBOM for xspct_hook and commit the result.
 The active virtualenv must have the full `dev` extra installed:
 
 ```bash
-pip install -e ".[dev]"
+.venv/bin/pip install -e ".[dev]"
 ```
 
 ## Steps (run in order — stop and report on failure)
 
 ### 1. Generate dependency SBOM (CycloneDX JSON)
 
-Covers the installed dependency tree:
+Covers the installed environment, including development dependencies. Project metadata comes
+from `pyproject.toml`; this is an environment inventory, not a locked production dependency list.
 
 ```bash
-.venv/bin/cyclonedx-py environment --of JSON -o bom.json
+.venv/bin/cyclonedx-py environment .venv/bin/python --pyproject pyproject.toml --of JSON -o bom.json
 ```
 
-Report the number of components listed.
+Report the number of components listed and confirm the root component name and version match
+`pyproject.toml`.
 
 ### 2. Verify REUSE compliance still passes
 

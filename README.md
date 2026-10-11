@@ -121,6 +121,22 @@ request flow, module layout, and protocol-conformance scope.
 .venv/bin/mypy --strict src/
 ```
 
+## Dependency SBOM
+
+The repository includes a CycloneDX JSON inventory in [bom.json](bom.json), following
+the same checked-in SBOM workflow as xspct_scan. Regenerate it after dependency changes
+and for every release:
+
+```bash
+.venv/bin/pip install -e '.[dev]'
+.venv/bin/cyclonedx-py environment .venv/bin/python --pyproject pyproject.toml --of JSON -o bom.json
+.venv/bin/reuse lint
+```
+
+The inventory covers the installed environment, including development tools; it is not a
+production lockfile. The `generate-sbom` and `release` prompts use the same generation command.
+Commit updates with GPG signing (`git commit -S`).
+
 See [.github/copilot-instructions.md](.github/copilot-instructions.md) for the commands and
 architecture quick-reference, and [CONTRIBUTING.md](CONTRIBUTING.md) for the commit convention.
 

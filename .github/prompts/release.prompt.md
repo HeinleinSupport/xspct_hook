@@ -39,7 +39,7 @@ Update `version = "..."` in `pyproject.toml` to `X.Y.Z`. This is the single sour
 The version bump changes `bom.json`'s own component entry, so it must be regenerated every release:
 
 ```bash
-.venv/bin/cyclonedx-py environment --of JSON -o bom.json
+.venv/bin/cyclonedx-py environment .venv/bin/python --pyproject pyproject.toml --of JSON -o bom.json
 ```
 Report the number of components listed and confirm `bom.json` now reflects version `X.Y.Z`.
 
