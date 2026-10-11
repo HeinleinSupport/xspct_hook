@@ -1,0 +1,40 @@
+# SPDX-License-Identifier: EUPL-1.2
+# SPDX-FileCopyrightText: 2026 Carsten Rosenberg <c.rosenberg@heinlein-support.de>
+
+version = 1
+
+# ── Agent / documentation files ─────────────────────────────────────────────
+[[annotations]]
+path = [
+    ".github/agents/**",
+    ".github/prompts/**",
+    ".github/copilot-instructions.md",
+    ".gitignore",
+    "CHANGELOG.md",
+    "CLAUDE.md",
+    "CONTRIBUTING.md",
+    "README.md",
+    "docs/**",
+    "examples/**",
+]
+SPDX-FileCopyrightText = "2026 Carsten Rosenberg <c.rosenberg@heinlein-support.de>"
+SPDX-License-Identifier = "EUPL-1.2"
+
+# ── Logos (may be shared, but not modified) ────────────────────────────────
+[[annotations]]
+path = "docs/_static/xspct_hook*.svg"
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Heinlein Support GmbH"
+SPDX-License-Identifier = "CC-BY-ND-4.0"
+
+[[annotations]]
+path = [
+    ".pytest_cache/**",
+    "src/**/__pycache__/**",
+    "tests/**/__pycache__/**",
+    "src/*.egg-info/**",
+    "docs/_build/**",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Carsten Rosenberg <c.rosenberg@heinlein-support.de>"
+SPDX-License-Identifier = "EUPL-1.2"

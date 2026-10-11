@@ -1,0 +1,82 @@
+# SPDX-License-Identifier: EUPL-1.2
+# SPDX-FileCopyrightText: 2026 Carsten Rosenberg <c.rosenberg@heinlein-support.de>
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "xspct_hook"
+version = "0.1.0"
+description = "Async MTA-hooks proxy daemon distributing scan requests to backend engines"
+readme = "README.md"
+license = { text = "EUPL-1.2" }
+authors = [
+  { name = "Carsten Rosenberg", email = "c.rosenberg@heinlein-support.de" },
+]
+requires-python = ">=3.12"
+keywords = ["mta-hooks", "stalwart", "clamav", "email", "fastapi", "milter"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: No Input/Output (Daemon)",
+  "Framework :: AsyncIO",
+  "Framework :: FastAPI",
+  "Intended Audience :: System Administrators",
+  "License :: OSI Approved :: European Union Public Licence 1.2 (EUPL 1.2)",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Communications :: Email :: Filters",
+  "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+  "Topic :: Security",
+]
+dependencies = [
+    "fastapi>=0.115",
+  "httpx>=0.27",
+    "pydantic>=2.0",
+    "pyyaml>=6.0",
+    "uvicorn[standard]>=0.30",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=5.0",
+    "ruff>=0.15",
+    "mypy>=1.11",
+    "types-PyYAML>=6.0",
+    "cyclonedx-bom>=5.0",
+    "reuse>=5.0",
+]
+
+[project.urls]
+Repository = "https://github.com/HeinleinSupport/xspct_hook"
+Issues = "https://github.com/HeinleinSupport/xspct_hook/issues"
+
+[project.scripts]
+xspct-hook = "xspct_hook.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/xspct_hook"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"examples/config.sample.yaml" = "xspct_hook/examples/config.sample.yaml"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+# B008: FastAPI's Depends()-as-default-argument is the documented, idiomatic pattern - not a bug.
+ignore = ["B008"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["xspct_hook"]
+
+[tool.coverage.report]
+exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]

@@ -1,0 +1,44 @@
+# xspct_hook sample configuration.
+#
+# Start with: xspct-hook --config examples/config.sample.yaml
+
+host: 127.0.0.1
+port: 8080
+
+# Messages larger than this are spooled to a temp file instead of held in memory.
+body_spool_threshold_mb: 10
+
+jsonl_log_path: "xspct_hook-events.jsonl"
+
+# Per-adapter and overall-fan-out timeouts, overridable per profile below.
+adapter_timeout: 10
+overall_timeout: 30
+
+profiles:
+  # A demo/test profile driven entirely by the PseudoScannerAdapter. Send a recipient
+  # like "verdict+malicious@test.local" to pick a scenario; see
+  # src/xspct_hook/adapters/pseudo.py for the full scenario list.
+  - name: pseudo-test
+    path: /hooks/pseudo-test
+    token: change-me-pseudo
+    stages: [mail, rcpt, data]
+    strategy: first_reject_wins
+    on_adapter_error: fail_open
+    adapters:
+      - type: pseudo
+        default_scenario: clean
+
+  # A real ClamAV-backed profile. Requires a running clamd reachable at host:port
+  # (or via unix_socket). Only scans at the data stage, where the message body exists.
+  - name: clamav-prod
+    path: /hooks/clamav-prod
+    token: change-me-clamav
+    stages: [data]
+    strategy: consensus_required
+    on_adapter_error: fail_closed
+    depends_on: [pseudo-test]
+    adapters:
+      - type: clamav
+        host: 127.0.0.1
+        port: 3310
+        timeout: 20

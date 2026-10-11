@@ -1,0 +1,12 @@
+{
+  "context": {
+    "stage": "rcpt",
+    "client": {"ip": "192.0.2.10", "port": 41000, "helo": "mail.example.com", "ptr": null, "activeConnections": 1},
+    "server": {"name": "mx.example.com", "ip": "198.51.100.20", "port": 25},
+    "protocol": {"version": 1}
+  },
+  "envelope": {
+    "from": {"address": "sender@example.com", "parameters": null},
+    "to": [{"address": "verdict+malicious@test.local", "parameters": null}]
+  }
+}
