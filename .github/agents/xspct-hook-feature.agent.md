@@ -87,5 +87,7 @@ git tag -s X.Y.Z -m "Tag message"
 For each feature:
 1. List every file you will change and why.
 2. Implement the changes.
-3. Run `pytest -v` and report results. Fix any failures before finishing.
-4. Summarise what was added and any follow-up config steps needed.
+3. Run `ruff check .` and `pyrefly check`. New code must not add entries to
+   `.pyrefly-baseline.json`; fix the type errors instead.
+4. Run `pytest -v` and report results. Fix any failures before finishing.
+5. Summarise what was added and any follow-up config steps needed.

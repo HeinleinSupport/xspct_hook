@@ -11,6 +11,7 @@ path = [
     ".github/copilot-instructions.md",
     ".gitignore",
     "bom.json",
+    ".pyrefly-baseline.json",
     "CHANGELOG.md",
     "CLAUDE.md",
     "CONTRIBUTING.md",

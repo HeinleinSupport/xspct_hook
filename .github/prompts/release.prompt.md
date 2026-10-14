@@ -62,7 +62,7 @@ with open('docs/openapi.json', 'w') as f:
 
 ```bash
 .venv/bin/ruff check src/ tests/
-.venv/bin/mypy --strict src/
+.venv/bin/pyrefly check
 .venv/bin/reuse lint
 .venv/bin/python -m pytest --tb=short
 ```

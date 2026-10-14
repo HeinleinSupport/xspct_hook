@@ -97,7 +97,8 @@ tests/integration/...
 
 1. `pyproject.toml`: hatchling build-backend, PEP 621 metadata, deps (fastapi, pydantic>=2, pyyaml,
   uvicorn[standard], httpx for the bundled client), `[project.optional-dependencies].dev` (pytest, pytest-asyncio, ruff,
-   mypy, cyclonedx-bom, reuse), console script entrypoint, ruff/mypy/pytest config all in this file,
+   pyrefly, cyclonedx-bom, reuse), console script entrypoint, ruff/pyrefly/pytest config all in this
+   file,
    `[tool.hatch.build]` force-include for `examples/config.sample.yaml`.
 2. `config.py` + `profiles.py`: Pydantic config models mirroring the sample YAML, plus
    `body_spool_threshold_mb` (default 10), `jsonl_log_path`, top-level `host`/`port`, per-profile
@@ -275,7 +276,8 @@ machine and the two new routes; the client itself is small given the slim smoke-
 1. `pip install -e .[dev]` succeeds from a clean venv; `xspct-hook --config examples/config.sample.yaml`
    starts without error (adapters may fail `connect()` gracefully if clamd is absent — should log, not
    crash, unless a profile has no working adapters at all).
-2. `ruff check .` and `mypy --strict src/` both clean (or documented targeted exceptions).
+2. `ruff check .` and `pyrefly check` (strict preset on `src/` and `tests/`, existing `tests/`
+   findings in `.pyrefly-baseline.json`) both clean (or documented targeted exceptions).
 3. `pytest` full suite green, including the fake-clamd (`asyncio.start_server`) ClamAV tests and the
    httpx-based FastAPI e2e tests per stage.
 4. Manual curl against `/hooks/pseudo-test` with `verdict+malicious@test.local` recipient reproduces a

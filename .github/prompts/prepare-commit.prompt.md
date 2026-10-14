@@ -1,5 +1,5 @@
 ---
-description: "Full pre-commit workflow for xspct_hook: format, lint, mypy, REUSE check, tests, stage changes, and suggest a properly tagged GPG-signed commit message."
+description: "Full pre-commit workflow for xspct_hook: format, lint, pyrefly, REUSE check, tests, stage changes, and suggest a properly tagged GPG-signed commit message."
 agent: agent
 tools: [execute, read, search]
 ---
@@ -25,10 +25,13 @@ Check the diff against main, and remove all AI generated slop introduced in this
 ```
 If there are lint errors, **stop** and report them. Do not proceed until the user resolves them.
 
-### 3. mypy --strict
+### 3. pyrefly (strict preset, baseline applied)
 ```bash
-.venv/bin/mypy --strict src/
+.venv/bin/pyrefly check
 ```
+Only findings missing from `.pyrefly-baseline.json` are reported. Do not update the baseline to hide
+new findings. If you fixed baselined findings, run `.venv/bin/pyrefly check --prune-baseline` and
+include the baseline change in the commit.
 If there are type errors, **stop** and report them. Do not proceed until the user resolves them.
 
 ### 4. REUSE / SPDX compliance

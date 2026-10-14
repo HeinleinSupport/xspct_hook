@@ -28,6 +28,19 @@ pytest tests/integration                # integration tests only
 pytest -k test_stalwart_codec           # single test by name
 ```
 
+### Type checking and lint
+```bash
+ruff check .                            # lint
+pyrefly check                           # strict preset on src/ and tests/, baseline applied
+pyrefly check --update-baseline         # only after deliberately accepting existing findings
+pyrefly check --error-stale-baseline    # fail if baseline entries are no longer needed
+```
+Pyrefly is configured in `[tool.pyrefly]` in `pyproject.toml`; known findings live in
+`.pyrefly-baseline.json`. Never add new entries to the baseline for new code — fix the type error
+instead. Shrink the baseline with `pyrefly check --prune-baseline` after fixing findings. If
+`VIRTUAL_ENV` points at another environment, run `unset VIRTUAL_ENV` first so pyrefly resolves
+`.venv`.
+
 ### Run the daemon
 ```bash
 xspct-hook --config examples/config.sample.yaml

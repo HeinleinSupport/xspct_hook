@@ -22,7 +22,7 @@ jobs:
       - name: Install lint tools
         # Pinned: ruff's default rule set expands between releases, which
         # would otherwise fail CI without any code change.
-        run: pip install "ruff==0.15.20" mypy reuse
+        run: pip install "ruff==0.15.20" reuse
 
       - name: Install project (for mypy's import resolution)
         run: pip install -e ".[dev]"
@@ -33,11 +33,25 @@ jobs:
       - name: ruff — format check
         run: ruff format --check src/ tests/
 
-      - name: mypy --strict
-        run: mypy --strict src/
-
       - name: REUSE compliance
         run: reuse lint
+
+  typecheck:
+    name: Type check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install project with dev tools
+        # Pinned like ruff: new checks between releases would break CI.
+        run: pip install -e ".[dev]" "pyrefly==1.3.2"
+
+      - name: pyrefly
+        run: pyrefly check --error-stale-baseline
 
   test:
     name: Test (Python ${{ matrix.python-version }})

@@ -1,0 +1,123 @@
+{
+  "errors": [
+    {
+      "column": 41,
+      "path": "tests/integration/test_app_mta01.py",
+      "name": "implicit-any-type-argument",
+      "concise_description": "Cannot determine the type parameter `_KT` for generic class `dict[_KT, _VT]`",
+      "severity": "error"
+    },
+    {
+      "column": 41,
+      "path": "tests/integration/test_app_mta01.py",
+      "name": "implicit-any-type-argument",
+      "concise_description": "Cannot determine the type parameter `_VT` for generic class `dict[_KT, _VT]`",
+      "severity": "error"
+    },
+    {
+      "column": 19,
+      "path": "tests/integration/test_app_stalwart.py",
+      "name": "no-matching-overload",
+      "concise_description": "No matching overload found for function `typing.MutableMapping.update` called with arguments: (dict[str, object])",
+      "severity": "error"
+    },
+    {
+      "column": 47,
+      "path": "tests/unit/test_canonical.py",
+      "name": "implicit-any-empty-container",
+      "concise_description": "Cannot infer type of empty container; it will be treated as containing `Any`",
+      "severity": "error"
+    },
+    {
+      "column": 35,
+      "path": "tests/unit/test_clamav_adapter.py",
+      "name": "implicit-any-parameter",
+      "concise_description": "`stalled_connection` is missing an annotation for parameter `args`",
+      "severity": "error"
+    },
+    {
+      "column": 43,
+      "path": "tests/unit/test_clamav_adapter.py",
+      "name": "implicit-any-parameter",
+      "concise_description": "`stalled_connection` is missing an annotation for parameter `kwargs`",
+      "severity": "error"
+    },
+    {
+      "column": 62,
+      "path": "tests/unit/test_config.py",
+      "name": "implicit-any-parameter",
+      "concise_description": "`test_warn_on_stage_overlaps_logs_when_depends_on_missing` is missing an annotation for parameter `caplog`",
+      "severity": "error"
+    },
+    {
+      "column": 59,
+      "path": "tests/unit/test_config.py",
+      "name": "implicit-any-parameter",
+      "concise_description": "`test_warn_on_stage_overlaps_logs_when_stages_disjoint` is missing an annotation for parameter `caplog`",
+      "severity": "error"
+    },
+    {
+      "column": 52,
+      "path": "tests/unit/test_config.py",
+      "name": "implicit-any-parameter",
+      "concise_description": "`test_shared_stage_dependency_warns_about_order` is missing an annotation for parameter `caplog`",
+      "severity": "error"
+    },
+    {
+      "column": 54,
+      "path": "tests/unit/test_logging.py",
+      "name": "implicit-any-parameter",
+      "concise_description": "`test_write_failure_unsubscribes_and_surfaces` is missing an annotation for parameter `caplog`",
+      "severity": "error"
+    },
+    {
+      "column": 40,
+      "path": "tests/unit/test_modifications.py",
+      "name": "implicit-any-empty-container",
+      "concise_description": "Cannot infer type of empty container; it will be treated as containing `Any`",
+      "severity": "error"
+    },
+    {
+      "column": 24,
+      "path": "tests/unit/test_orchestrator.py",
+      "name": "implicit-any-type-argument",
+      "concise_description": "Cannot determine the type parameter `_T` for generic class `list[_T]`",
+      "severity": "error"
+    },
+    {
+      "column": 32,
+      "path": "tests/unit/test_orchestrator.py",
+      "name": "implicit-any-parameter",
+      "concise_description": "`_profile` is missing an annotation for parameter `overrides`",
+      "severity": "error"
+    },
+    {
+      "column": 24,
+      "path": "tests/unit/test_orchestrator.py",
+      "name": "open-unpacking",
+      "concise_description": "`<anonymous>` is an open TypedDict with unknown extra items, which cannot be unpacked into a callable without `**kwargs` in function `xspct_hook.profiles.HookProfile.__init__`",
+      "severity": "error"
+    },
+    {
+      "column": 79,
+      "path": "tests/unit/test_orchestrator.py",
+      "name": "bad-argument-type",
+      "concise_description": "Argument `dict[str, str]` is not assignable to parameter `verdict` with type `ScanVerdict | None` in function `_StubAdapter.__init__`",
+      "severity": "error"
+    },
+    {
+      "column": 12,
+      "path": "tests/unit/test_orchestrator.py",
+      "name": "missing-attribute",
+      "concise_description": "Object of class `NoneType` has no attribute `status`",
+      "severity": "error"
+    },
+    {
+      "column": 71,
+      "path": "tests/unit/test_stalwart_codec.py",
+      "name": "implicit-any-empty-container",
+      "concise_description": "Cannot infer type of empty container; it will be treated as containing `Any`",
+      "severity": "error"
+    }
+  ]
+}
