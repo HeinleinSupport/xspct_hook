@@ -30,8 +30,8 @@ All commits follow [Conventional Commits](https://www.conventionalcommits.org/en
 - Add a checked-in CycloneDX dependency SBOM with generation and release prompts and EUPL metadata.
 - Add package metadata, development tooling and the smoke client's runtime HTTP dependency.
 - Add EUPL-1.2 REUSE annotations for examples, repository documentation and generated caches.
-
 - Replace mypy with Pyrefly (strict preset, with a baseline for existing `tests/` findings) for type checking.
+
 ### Tests
 
 - Add unit and integration coverage for both wire dialects, adapters and lifecycle error handling.

@@ -121,13 +121,6 @@ request flow, module layout, and protocol-conformance scope.
 .venv/bin/pyrefly check
 ```
 
-## Dependency SBOM
-
-The repository includes a CycloneDX JSON inventory in [bom.json](bom.json), following
-the same checked-in SBOM workflow as xspct_scan. Regenerate it after dependency changes
-and for every release:
-
-```bash
 Type checking uses [Pyrefly](https://pyrefly.org/) with the `strict` preset on `src/` and `tests/`,
 configured in `[tool.pyrefly]` in [pyproject.toml](pyproject.toml). Existing findings (currently in
 `tests/`) are recorded in [.pyrefly-baseline.json](.pyrefly-baseline.json) and are not reported;
@@ -136,6 +129,13 @@ findings. In VS Code, set
 `"python.analysis.diagnosticsSource": "Pylance + Pyrefly"` so Pylance shows the same diagnostics; it
 picks up the `pyrefly` executable from the selected `.venv`.
 
+## Dependency SBOM
+
+The repository includes a CycloneDX JSON inventory in [bom.json](bom.json), following
+the same checked-in SBOM workflow as xspct_scan. Regenerate it after dependency changes
+and for every release:
+
+```bash
 .venv/bin/pip install -e '.[dev]'
 .venv/bin/cyclonedx-py environment .venv/bin/python --pyproject pyproject.toml --of JSON -o bom.json
 .venv/bin/reuse lint
