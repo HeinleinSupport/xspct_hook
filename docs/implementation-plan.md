@@ -271,6 +271,57 @@ machine and the two new routes; the client itself is small given the slim smoke-
     Discover enabled stages and skip disabled representative cases (delivery is absent from the
     default sample). Apply response operations and verify action, SMTP code 550 and scan headers.
 
+  ### Future Phase J - Two-phase scan jobs and SMTP retry correlation (proposed, not implemented)
+
+  Goal: support backends such as Peekaboo and, subject to API verification, xspct_scan that separate
+  file submission from report retrieval. A scan may outlive the synchronous hook deadline without
+  requiring another upload on the next SMTP attempt. Verify each backend's submission, polling,
+  expiry and idempotency contracts before implementing its adapter. ClamAV INSTREAM is synchronous
+  and does not provide this job protocol.
+
+  26. Correlation identity: use a versioned, unambiguous key containing tenant/profile scope, backend
+    identity, scan-policy version and SHA-256 of the exact uploaded bytes. For file scanning, hash
+    decoded attachment bytes; for whole-message scanning, define a stable message representation.
+    Do not use `Message-ID`, `session_id`, `trace_id` or `queue_id` as the sole cross-retry key:
+    Message-ID is sender-controlled, session/trace IDs are per-call or connection identifiers, and
+    queue IDs are optional and not guaranteed stable across resubmission after SMTP 451.
+    Stalwart's lossy UTF-8 message reconstruction is not a byte-exact identity; exclude locally
+    generated per-attempt headers and document the remaining limitations. Native `rawMessage`
+    preserves bytes but can still change between submissions. Changed content creates a new key.
+    Separate reusable content scan reports from mail-specific decisions; include relevant envelope
+    and other policy inputs when caching decisions. Do not reuse reports across security scopes.
+  27. Persistent job store: map the correlation key to backend job ID, state, submission/update times,
+    expiry and completed report. Survive proxy restarts and coordinate concurrent workers using
+    atomic claims/leases. Track submitting, pending, completed and failed states; bound retention,
+    report validity, maximum pending age and store size. Report expiry or policy changes invalidate
+    reuse. Avoid storing message content unless necessary; protect persisted reports and IDs.
+    A local atomic claim alone cannot guarantee exactly-once remote submission: handle a lost upload
+    response or crash before recording the job ID through backend idempotency/content lookup where
+    available, or document a bounded recovery policy that may create duplicate jobs.
+  28. Adapter workflow: look up a valid job before uploading. Submit only when none exists, persist
+    its returned ID promptly, and poll within the hook's remaining time budget with bounded requests
+    and backoff. On a later SMTP attempt, retrieve the existing report using the stored job ID.
+    Cancelling local polling at the hook deadline must not delete the mapping or cancel the remote
+    job. Do not leave unowned background tasks or retain request-owned message spools after return.
+    For multiple submitted files, preserve each job mapping and aggregate their reports; a required
+    file without a completed report must not be treated as clean.
+  29. Pending-result semantics: distinguish a valid pending job from backend errors rather than
+    describing both as engine unavailability. Define an explicit profile pending policy, defaulting
+    to inbound SMTP `451` with a scan-pending response even if adapter errors are configured fail-open.
+    This is temporary rejection before acceptance: the sending MTA retains the mail and retries;
+    xspct_hook does not queue it. Keep action and aggregation semantics in `protocol/` and the shared
+    orchestration/aggregation layer, not wire codecs. Define interaction with completed terminal
+    verdicts, expired/failed jobs and outbound native hooks; do not confuse pending scans with the
+    draft's outbound `defer` stage. Existing timeouts produce error verdicts under `on_adapter_error`
+    and cancel adapter calls; they do not yet implement this pending lifecycle.
+  30. Acceptance tests: pending upload -> SMTP 451 -> completed report on retry without another upload;
+    the same flow across proxy restart; concurrent attempts sharing one known job; cancellation
+    preserving remote work and stored identity; ambiguous submission recovery; expiry and policy
+    invalidation; changed bytes creating a new job; tenant/backend isolation; duplicate or absent
+    Message-ID; multi-file pending aggregation; terminal verdict interaction; bounded polling and
+    retention; backend failures following the configured error policy. Use fake two-phase backends
+    first, then require live backend and Stalwart retry interoperability checks.
+
 ## Verification
 
 1. `pip install -e .[dev]` succeeds from a clean venv; `xspct-hook --config examples/config.sample.yaml`
@@ -310,5 +361,10 @@ machine and the two new routes; the client itself is small given the slim smoke-
   bounded ClamAV connections; and a live local daemon smoke run.
 - The native -01 registration endpoint reuses the same per-profile Bearer token as the Stalwart
   route — no separate registration-specific auth mechanism.
+- JMAP-like message fragments (envelope addresses, headers, Base64 `rawMessage`) are modelled with
+  local Pydantic schemas, not a JMAP library: available Python libraries are client-oriented and
+  would not match the draft's field names or Stalwart's wire format. Re-check field names against
+  the final draft. Use the standard `email` package (`policy=email.policy.default`) if an adapter
+  needs MIME or attachment parsing from `rawMessage`.
 - No fail-open/fail-closed policy for adapter unavailability beyond `on_adapter_error`; the
   orchestrator's per-adapter/overall timeout handling covers the "never hang" requirement.

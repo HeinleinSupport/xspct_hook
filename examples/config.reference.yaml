@@ -1,0 +1,88 @@
+# xspct_hook reference configuration: every option with its default and meaning.
+# See docs/configuration.md. Start with:
+#
+#   xspct-hook --config examples/config.reference.yaml
+#
+# All tokens below are placeholders. Replace them before any non-local use.
+
+# --- Global settings -------------------------------------------------------
+
+# Address and port the HTTP server binds to. Default: 127.0.0.1:8080.
+# Use a TLS-terminating reverse proxy for anything beyond local demos.
+host: 127.0.0.1
+port: 8080
+
+# Message bodies larger than this (MB) are spooled to a temporary file.
+# Default: 10. The request JSON is still buffered in memory first.
+body_spool_threshold_mb: 10
+
+# JSON Lines event log (one event per line). Default: xspct_hook-events.jsonl.
+jsonl_log_path: "xspct_hook-events.jsonl"
+
+# Default time limits in seconds; both can be overridden per profile.
+#   adapter_timeout: limit for each scan engine call (default 10)
+#   overall_timeout: limit for all engines of one request (default 30)
+# Keep the MTA's hook timeout above overall_timeout, and every engine's own
+# timeout at or below adapter_timeout (the smaller limit wins).
+adapter_timeout: 10
+overall_timeout: 30
+
+# --- Profiles ----------------------------------------------------------------
+# One profile = one HTTP route, one Bearer token, one set of stages, one set of
+# scan engines and one aggregation strategy. Profile names and paths must be unique.
+
+profiles:
+  # Demo profile driven by the scripted pseudo scanner. Send a recipient such as
+  # verdict+malicious@test.local at rcpt/data to select a scenario.
+  - name: pseudo-demo
+    # Route for Stalwart. Must start with "/" and must not end with "/".
+    # Native draft -01 endpoints are derived from it:
+    #   <path>/mta01, <path>/register, <path>/.well-known/mta-hooks
+    path: /hooks/pseudo-demo
+    # Bearer token expected in the Authorization header. Use a long random value.
+    token: change-me-pseudo
+    # Stages this profile answers: connect, ehlo, auth, mail, rcpt, data,
+    # delivery, defer, dsn. Stalwart only calls the inbound stages; the outbound
+    # stages are reachable via the native draft -01 endpoint.
+    stages: [mail, rcpt, data]
+    # How verdicts from several engines are combined:
+    #   first_reject_wins   - the most severe verdict wins (default)
+    #   consensus_required  - reject only if all engines agree
+    strategy: first_reject_wins
+    # Handling of engine errors and timeouts:
+    #   fail_open   - ignore the failing engine (default)
+    #   fail_closed - reply with a temporary failure (SMTP 451 4.7.0), so the
+    #                 sending MTA retries later
+    on_adapter_error: fail_open
+    adapters:
+      - type: pseudo
+        # Scenario used when the recipient does not select one. Default: clean.
+        default_scenario: clean
+        # Delay in seconds for the "slow" scenario. Default: 2.
+        slow_delay: 2
+
+  # ClamAV profile. Scans the message body at the data stage through clamd INSTREAM.
+  - name: clamav-data
+    path: /hooks/clamav-data
+    token: change-me-clamav
+    stages: [data]
+    strategy: consensus_required
+    on_adapter_error: fail_closed
+    # Per-profile limits override the global defaults. The engine below may need
+    # up to 20 s, so the call limit is raised above the global 10 s default.
+    adapter_timeout: 25
+    overall_timeout: 30
+    # Informational only: logs a startup warning when this profile shares stages
+    # with the named profile. It does not order hooks or transfer scan context.
+    depends_on: []
+    adapters:
+      - type: clamav
+        # Connect to clamd over TCP ...
+        host: 127.0.0.1
+        # Default: 3310.
+        port: 3310
+        # ... or use a Unix socket instead of host/port:
+        # unix_socket: /run/clamav/clamd.ctl
+        # Limit in seconds for connecting, uploading and reading the result.
+        # Default: 30. The profile's adapter_timeout still applies on top of it.
+        timeout: 20

@@ -113,6 +113,13 @@ Real Stalwart does not speak draft -01's literal wire protocol. xspct_hook keeps
 See [docs/implementation-plan.md](docs/implementation-plan.md) for the full design, including the
 request flow, module layout, and protocol-conformance scope.
 
+## Configuration
+
+All options, adapters, strategies and timeout behaviour are described in
+[docs/configuration.md](docs/configuration.md). [examples/config.reference.yaml](examples/config.reference.yaml)
+lists every option with its default; [examples/config.sample.yaml](examples/config.sample.yaml) is the
+short quick-start file.
+
 ## Development
 
 ```bash

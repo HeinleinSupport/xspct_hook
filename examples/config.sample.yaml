@@ -36,6 +36,8 @@ profiles:
     stages: [data]
     strategy: consensus_required
     on_adapter_error: fail_closed
+    # Must be at least the ClamAV timeout below; the smaller limit wins.
+    adapter_timeout: 25
     depends_on: [pseudo-test]
     adapters:
       - type: clamav

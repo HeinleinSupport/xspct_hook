@@ -24,6 +24,7 @@ All commits follow [Conventional Commits](https://www.conventionalcommits.org/en
 
 - Document setup, demo workflows, verified Stalwart configuration and protocol conformance limits.
 - Update the implementation plan with review acceptance criteria and regression coverage.
+- Add a configuration guide and a fully commented reference configuration.
 
 ### Build
 
