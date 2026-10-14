@@ -36,8 +36,13 @@ commit messages, from the first commit onward.
 | `protocol` | Canonical -01-shaped domain model (contexts, actions, modifications, decisions) |
 | `wire` | `StalwartCodec` / `Mta01Codec` wire-format translation |
 | `adapter` | Individual scan adapters (`PseudoScannerAdapter`, `ClamAVAdapter`) |
-| `orchestrator` | `HookOrchestrator`, aggregation strategies, event bus |
-| `config` | Configuration schema, profiles, and defaults |
+| `orchestrator` | `HookOrchestrator` and aggregation strategies |
+| `app` | FastAPI app, routing, and Bearer-token authentication |
+| `body` | `MessageBody`: in-memory and spooled message content |
+| `events` | `EventBus` and the JSONL event log |
+| `registration` | In-memory registration store of the native -01 endpoint |
+| `testing` | Bundled `Mta01TestClient` and the smoke-test demo |
+| `config` | Configuration schema, profiles, adapter/strategy registry, and defaults |
 | `cli` | Command-line entrypoint |
 
 ### Breaking changes

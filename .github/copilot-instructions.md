@@ -129,7 +129,8 @@ authoritative source; the summary below just repeats the operationally important
 | `ci` | CI configuration |
 | `chore` | Other maintenance |
 
-Scopes: `protocol`, `wire`, `adapter`, `orchestrator`, `config`, `cli`. Breaking changes: `!` after
+Scopes: `protocol`, `wire`, `adapter`, `orchestrator`, `app`, `body`, `events`, `registration`,
+`testing`, `config`, `cli`. Breaking changes: `!` after
 the scope and/or a `BREAKING CHANGE:` footer. Description is imperative, lowercase, no trailing
 period, first line ≤ 72 chars. Independent changes go in separate commits — don't mix an adapter
 change with a protocol-layer change.

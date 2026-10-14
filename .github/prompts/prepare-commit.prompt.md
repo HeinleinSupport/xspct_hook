@@ -91,7 +91,8 @@ go stale):
 | `ci` | CI configuration |
 | `chore` | Other maintenance |
 
-Scopes: `protocol`, `wire`, `adapter`, `orchestrator`, `config`, `cli` (omit the scope for
+Scopes: `protocol`, `wire`, `adapter`, `orchestrator`, `app`, `body`, `events`, `registration`,
+`testing`, `config`, `cli` (omit the scope for
 `ci`/`build`/`docs`/`test`/`chore` changes that don't target one of these areas). Mark breaking
 changes with `!` after the scope and/or a `BREAKING CHANGE:` footer.
 

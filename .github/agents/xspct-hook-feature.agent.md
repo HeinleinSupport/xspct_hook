@@ -70,7 +70,8 @@ Commits follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.
 | `ci` | CI configuration |
 | `chore` | Other maintenance |
 
-Scopes: `protocol`, `wire`, `adapter`, `orchestrator`, `config`, `cli`. Mark breaking changes with `!`
+Scopes: `protocol`, `wire`, `adapter`, `orchestrator`, `app`, `body`, `events`, `registration`,
+`testing`, `config`, `cli`. Mark breaking changes with `!`
 after the scope and/or a `BREAKING CHANGE:` footer. Description is imperative, lowercase, no trailing
 period, first line ≤ 72 chars. Independent changes go in separate commits.
 
