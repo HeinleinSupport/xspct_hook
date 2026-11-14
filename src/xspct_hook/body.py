@@ -73,8 +73,12 @@ class MessageBody:
         if self._data is not None:
             return self._data
         assert self._tmp is not None
-        self._tmp.seek(0)
-        return self._tmp.read()
+        position = self._tmp.tell()
+        try:
+            self._tmp.seek(0)
+            return self._tmp.read()
+        finally:
+            self._tmp.seek(position)
 
     def close(self) -> None:
         if self._tmp is not None:

@@ -10,6 +10,7 @@ from typing import Any
 from xspct_hook.adapters.base import ScanAdapter
 from xspct_hook.adapters.clamav import ClamAVAdapter
 from xspct_hook.adapters.pseudo import PseudoScannerAdapter
+from xspct_hook.adapters.xspct_scan import XspctScanAdapter
 from xspct_hook.aggregation import AggregationStrategy, ConsensusRequired, FirstRejectWins
 
 AdapterFactory = Callable[[dict[str, Any]], ScanAdapter]
@@ -25,6 +26,12 @@ ADAPTER_FACTORIES: dict[str, AdapterFactory] = {
         port=cfg.get("port", 3310),
         unix_socket=cfg.get("unix_socket"),
         timeout=cfg.get("timeout", 30.0),
+    ),
+    "xspct_scan": lambda cfg: XspctScanAdapter(
+        base_url=cfg["base_url"],
+        api_key=cfg.get("api_key"),
+        timeout=cfg.get("timeout", 30.0),
+        scan_timeout=cfg.get("scan_timeout", 10.0),
     ),
 }
 

@@ -41,9 +41,9 @@ profiles:
     path: /hooks/pseudo-demo
     # Bearer token expected in the Authorization header. Use a long random value.
     token: change-me-pseudo
-    # Stages this profile answers: connect, ehlo, auth, mail, rcpt, data,
-    # delivery, defer, dsn. Stalwart only calls the inbound stages; the outbound
-    # stages are reachable via the native draft -01 endpoint.
+    # Stalwart 1.0.3: connect, ehlo, mail, rcpt, data (no AUTH hook).
+    # delivery, defer, dsn are native draft -01 only. auth is rejected.
+    # A disconnect verdict on the Stalwart route rejects without a close guarantee.
     stages: [mail, rcpt, data]
     # How verdicts from several engines are combined:
     #   first_reject_wins   - the most severe verdict wins (default)
@@ -86,3 +86,25 @@ profiles:
         # Limit in seconds for connecting, uploading and reading the result.
         # Default: 30. The profile's adapter_timeout still applies on top of it.
         timeout: 20
+
+  # xspct_scan scans decoded text, HTML, inline content and attachments separately.
+  # Enable ClamAV in xspct_scan for confirmed infection rejection; other findings
+  # are informational. HTTP 202 and failed analyses follow on_adapter_error.
+  - name: xspct-scan-data
+    path: /hooks/xspct-scan-data
+    token: change-me-xspct-scan
+    stages: [data]
+    strategy: first_reject_wins
+    on_adapter_error: fail_closed
+    adapter_timeout: 35
+    overall_timeout: 40
+    adapters:
+      - type: xspct_scan
+        # Required backend base URL (not the /v1/scan endpoint).
+        base_url: http://127.0.0.1:8081
+        # Optional backend credential, distinct from the hook profile token.
+        # api_key: replace-with-backend-api-key
+        # Total adapter deadline across all parts. Default: 30 seconds.
+        timeout: 30
+        # Per-part backend analysis budget before a partial response. Default: 10.
+        scan_timeout: 10
