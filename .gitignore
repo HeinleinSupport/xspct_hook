@@ -18,9 +18,8 @@ build/
 venv/
 env/
 
-# Pytest / mypy / ruff
+# Pytest / pyrefly / ruff
 .pytest_cache/
-.mypy_cache/
 .ruff_cache/
 .coverage
 htmlcov/

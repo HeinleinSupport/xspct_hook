@@ -22,7 +22,9 @@ Run the xspct_hook test suite with pytest.
    Append any flags derived from the argument above.
 
 3. **Report results**:
+   - Exact command and selected scope
    - Total passed / failed / errors / skipped
+   - Distinguish mocked tests from live integration checks; do not count skips as passes
    - For each failure: test name, file, line, full error message and traceback
    - For each error: same detail
    - If coverage was requested: coverage percentage per module and overall total

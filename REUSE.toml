@@ -13,7 +13,6 @@ path = [
     "bom.json",
     ".pyrefly-baseline.json",
     "CHANGELOG.md",
-    "CLAUDE.md",
     "CONTRIBUTING.md",
     "README.md",
     "docs/**",
