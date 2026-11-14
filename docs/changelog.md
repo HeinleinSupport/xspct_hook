@@ -5,6 +5,8 @@ All commits follow [Conventional Commits](https://www.conventionalcommits.org/en
 
 ## Unreleased
 
+## 0.1.0 — 2026-11-14
+
 ### Features
 
 - Add xspct_scan MIME-part uploads, confirmed ClamAV rejection and partial-scan error handling.
