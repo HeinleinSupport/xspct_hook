@@ -40,7 +40,8 @@ class ProfileConfig(BaseModel):
     @classmethod
     def _validate_stages(cls, value: list[str]) -> list[str]:
         for stage in value:
-            Stage(stage)
+            if Stage(stage) == Stage.AUTH:
+                raise ValueError("auth is not supported by the Stalwart or draft-01 endpoint")
         return value
 
 

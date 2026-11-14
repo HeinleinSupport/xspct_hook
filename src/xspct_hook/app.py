@@ -18,17 +18,20 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
+from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import ValidationError
+from pydantic.json_schema import models_json_schema
 
 from xspct_hook.body import MessageBody
 from xspct_hook.config import AppConfig, build_profiles
 from xspct_hook.events import EventBus, ModificationRejected
-from xspct_hook.exceptions import RegistrationNotFoundError
+from xspct_hook.exceptions import HeaderInjectionRejected, RegistrationNotFoundError
 from xspct_hook.logging_ import JSONLWriter
 from xspct_hook.orchestrator import HookOrchestrator
 from xspct_hook.profiles import HookProfile
+from xspct_hook.protocol.canonical import HookPayload
 from xspct_hook.protocol.models import OUTBOUND_STAGES
 from xspct_hook.registration import (
     Registration,
@@ -38,7 +41,7 @@ from xspct_hook.registration import (
     negotiate,
 )
 from xspct_hook.wire.mta01 import Mta01Codec
-from xspct_hook.wire.stalwart import StalwartCodec
+from xspct_hook.wire.stalwart import STALWART_STAGES, StalwartCodec, StalwartRequestPayload
 
 logger = logging.getLogger(__name__)
 
@@ -118,6 +121,54 @@ def create_app(config: AppConfig) -> FastAPI:
 
     app.add_api_route("/.well-known/mta-hooks", _root_discovery, methods=["GET"])
 
+    def _openapi() -> dict[str, Any]:
+        if app.openapi_schema is not None:
+            return app.openapi_schema
+        schema = get_openapi(
+            title=app.title,
+            version=app.version,
+            openapi_version=app.openapi_version,
+            routes=app.routes,
+        )
+        # Document manual decoding without moving body parsing ahead of authentication.
+        _, definitions = models_json_schema(
+            [
+                (StalwartRequestPayload, "validation"),
+                (HookPayload, "validation"),
+                (RegistrationRequest, "validation"),
+            ],
+            ref_template="#/components/schemas/{model}",
+        )
+        schemas = schema.setdefault("components", {}).setdefault("schemas", {})
+        schemas.update(definitions["$defs"])
+        schemas["StalwartContextPayload"]["properties"]["stage"] = {
+            "type": "string",
+            "enum": sorted(stage.value for stage in STALWART_STAGES),
+        }
+        schemas["HookPayload"]["required"].append("action")
+        del schemas["HookPayload"]["properties"]["properties"]
+        schemas["HookPayload"]["not"] = {"required": ["properties"]}
+        for profile in profiles:
+            for suffix, model in (
+                ("", "StalwartRequestPayload"),
+                ("/mta01", "HookPayload"),
+                ("/register", "RegistrationRequest"),
+            ):
+                operation = schema["paths"][profile.path + suffix]["post"]
+                operation["requestBody"] = {
+                    "required": True,
+                    "content": {
+                        "application/json": {"schema": {"$ref": f"#/components/schemas/{model}"}}
+                    },
+                }
+            for parameter in schema["paths"][f"{profile.path}/mta01"]["post"]["parameters"]:
+                if parameter["in"] == "header":
+                    parameter["required"] = True
+                    parameter["schema"].pop("default", None)
+        app.openapi_schema = schema
+        return schema
+
+    app.openapi = _openapi
     return app
 
 
@@ -202,7 +253,7 @@ def _register_stalwart_route(
         payload = await _read_payload(request)
         try:
             ctx = codec.decode_request(payload, spool_threshold_mb=config.body_spool_threshold_mb)
-        except (ValueError, TypeError, KeyError) as exc:
+        except (ValueError, TypeError, KeyError, HeaderInjectionRejected) as exc:
             raise _error(400, "INVALID_REQUEST", "invalid Stalwart hook payload") from exc
 
         message = ctx.properties.get("message")
@@ -352,7 +403,11 @@ def _register_mta01_routes(
         discovery_path, _discover, methods=["GET"], name=f"mta01-discovery-{profile.name}"
     )
     app.add_api_route(
-        register_path, _register, methods=["POST"], name=f"mta01-register-{profile.name}"
+        register_path,
+        _register,
+        methods=["POST"],
+        status_code=201,
+        name=f"mta01-register-{profile.name}",
     )
     app.add_api_route(
         register_path + "/{registration_id}",

@@ -2,12 +2,13 @@
 # SPDX-FileCopyrightText: 2026 Carsten Rosenberg <c.rosenberg@heinlein-support.de>
 """The only wire dialect real Stalwart can call: its flat ``{action, response, modifications}`` JSON.
 
-See docs/implementation-plan.md for the full divergence from the -01 draft that this codec resolves.
+See docs/architecture.md for the full divergence from the -01 draft that this codec resolves.
 """
 
 from __future__ import annotations
 
 import base64
+import logging
 import re
 from dataclasses import replace
 from typing import Any
@@ -37,7 +38,26 @@ _RECIPIENT_APPEND_PATH = "/envelope/to/-"
 _RECIPIENT_INDEX_RE = re.compile(r"^/envelope/to/(\d+)$")
 _SENDER_PATH = "/envelope/from"
 
-STALWART_SCHEMA_REVISION = "2f5b9f2c697ca0fb1d7f015dcdeab961cd7be893"
+STALWART_SCHEMA_REVISION = "8b32686532d34623e9ce8e1237cf2bed9554af38"
+STALWART_STAGES = INBOUND_STAGES - {Stage.AUTH}
+logger = logging.getLogger(__name__)
+
+
+def _decode_headers(headers: list[tuple[str, str]]) -> list[dict[str, str]]:
+    result = []
+    for name, value in headers:
+        value = value.removesuffix("\r\n") if value.endswith("\r\n") else value.removesuffix("\n")
+        value = re.sub(r"\r?\n[ \t]+", " ", value).lstrip(" \t")
+        header = {"name": name, "value": value}
+        validate_modification(AddOperation(_HEADER_APPEND_PATH, header))
+        result.append(header)
+    return result
+
+
+def _raw_header(name: str, value: str) -> str:
+    separator = "" if value.startswith((" ", "\t")) else " "
+    ending = "" if value.endswith("\n") else "\r\n"
+    return f"{name}:{separator}{value}{ending}"
 
 
 class StalwartAddressPayload(BaseModel):
@@ -89,8 +109,8 @@ class StalwartCodec:
         self, payload: dict[str, Any], *, spool_threshold_mb: float = 10.0
     ) -> HookContext:
         parsed = StalwartRequestPayload.model_validate(payload)
-        if parsed.context.stage not in INBOUND_STAGES:
-            raise ValueError("Stalwart only supports inbound stages")
+        if parsed.context.stage not in STALWART_STAGES:
+            raise ValueError("Stalwart supports connect, ehlo, mail, rcpt and data hooks")
         client = parsed.context.client.model_dump() if parsed.context.client else {}
         client["ehlo"] = (payload["context"].get("client") or {}).get("helo")
         canonical: dict[str, Any] = {
@@ -105,18 +125,16 @@ class StalwartCodec:
             for address in [canonical["envelope"]["from"], *canonical["envelope"]["to"]]:
                 address["parameters"] = address["parameters"] or {}
         if parsed.message is not None:
-            canonical["message"] = {
-                "headers": [
-                    {"name": name, "value": value} for name, value in parsed.message.headers
-                ]
-            }
+            headers = _decode_headers(parsed.message.headers)
+            _decode_headers(parsed.message.server_headers)
+            canonical["message"] = {"headers": headers}
             if parsed.message.contents is not None:
                 contents = (
-                    "\r\n".join(
-                        f"{name}: {value}"
+                    "".join(
+                        _raw_header(name, value)
                         for name, value in [*parsed.message.server_headers, *parsed.message.headers]
                     )
-                    + "\r\n\r\n"
+                    + "\r\n"
                     + parsed.message.contents
                 )
                 canonical["rawMessage"] = base64.b64encode(
@@ -180,7 +198,10 @@ class StalwartCodec:
             if response.message is not None:
                 resp["message"] = response.message
         if action == Action.DISCONNECT:
-            resp["disconnect"] = True
+            logger.warning(
+                "Stalwart does not reliably honour disconnect; returning reject without closing "
+                "the SMTP session"
+            )
             return "reject", resp
         return _ACTION_TO_STALWART[action], resp
 

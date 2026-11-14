@@ -7,6 +7,8 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
+import pytest
+
 from xspct_hook.adapters.pseudo import PseudoScannerAdapter
 from xspct_hook.aggregation import FirstRejectWins
 from xspct_hook.config import AppConfig, build_profiles, load_config
@@ -34,6 +36,13 @@ def test_load_config_parses_yaml(tmp_path: Path) -> None:
     assert config.port == 9000
     assert len(config.profiles) == 1
     assert config.profiles[0].name == "pseudo-test"
+
+
+def test_config_refuses_unreachable_auth_subscription(tmp_path: Path) -> None:
+    config_path = tmp_path / "config.yaml"
+    config_path.write_text(_SAMPLE_CONFIG.replace("[mail, rcpt]", "[auth]"))
+    with pytest.raises(ValueError, match="auth is not supported"):
+        load_config(config_path)
 
 
 def test_build_profiles_constructs_hook_profile(tmp_path: Path) -> None:

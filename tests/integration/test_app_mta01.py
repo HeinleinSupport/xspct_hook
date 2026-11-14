@@ -43,6 +43,34 @@ async def client(tmp_path: Path) -> AsyncIterator[httpx.AsyncClient]:
         yield async_client
 
 
+def test_openapi_describes_manually_decoded_requests(tmp_path: Path) -> None:
+    schema = create_app(_config(tmp_path)).openapi()
+    paths = schema["paths"]
+    schemas = schema["components"]["schemas"]
+    for path in ("/hooks/pseudo-test", "/hooks/pseudo-test/mta01", "/hooks/pseudo-test/register"):
+        operation = paths[path]["post"]
+        body = operation["requestBody"]
+        assert body["required"] is True
+        reference = body["content"]["application/json"]["schema"]["$ref"]
+        model = schemas[reference.rsplit("/", 1)[1]]
+        assert model["type"] == "object"
+        assert model["required"]
+
+    native = paths["/hooks/pseudo-test/mta01"]["post"]
+    headers = {
+        parameter["name"]: parameter
+        for parameter in native["parameters"]
+        if parameter["in"] == "header"
+    }
+    for name in ("X-MTA-Hooks-Registration", "X-MTA-Hooks-Request-Id"):
+        assert headers[name]["required"] is True
+        assert "default" not in headers[name]["schema"]
+    assert "action" in schemas["HookPayload"]["required"]
+    assert "properties" not in schemas["HookPayload"]["properties"]
+    assert "201" in paths["/hooks/pseudo-test/register"]["post"]["responses"]
+    assert "200" not in paths["/hooks/pseudo-test/register"]["post"]["responses"]
+
+
 async def test_discovery_lists_endpoints(client: httpx.AsyncClient) -> None:
     response = await client.get("/hooks/pseudo-test/.well-known/mta-hooks")
     assert response.status_code == 200

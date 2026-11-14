@@ -4,6 +4,9 @@
 
 from __future__ import annotations
 
+import pytest
+
+from xspct_hook.exceptions import HeaderInjectionRejected
 from xspct_hook.protocol.actions import Action
 from xspct_hook.protocol.decision import HookDecision, ResponseOverride
 from xspct_hook.protocol.models import MailContext, RcptContext
@@ -114,7 +117,9 @@ def test_encode_reject_with_response_override() -> None:
     }
 
 
-def test_encode_disconnect_maps_to_reject_with_disconnect_flag() -> None:
+def test_encode_disconnect_maps_to_reject_with_explicit_warning(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     codec = StalwartCodec()
     decision = HookDecision(
         action=Action.DISCONNECT,
@@ -124,7 +129,53 @@ def test_encode_disconnect_maps_to_reject_with_disconnect_flag() -> None:
     )
     encoded = codec.encode_response(decision)
     assert encoded["action"] == "reject"
-    assert encoded["response"]["disconnect"] is True
+    assert "disconnect" not in encoded["response"]
+    assert "without closing the SMTP session" in caplog.text
+
+
+def test_decode_native_folded_headers_reconstructs_mime_without_extra_separators() -> None:
+    ctx = StalwartCodec().decode_request(
+        {
+            "context": {"stage": "data"},
+            "message": {
+                "headers": [
+                    ["Subject", " native\r\n\tfolded\r\n"],
+                    ["Content-Type", " application/octet-stream\r\n"],
+                    ["Content-Transfer-Encoding", " base64\r\n"],
+                ],
+                "serverHeaders": [["Received", " by mx.example.com\r\n"]],
+                "contents": "c3ludGhldGlj\r\n",
+            },
+        }
+    )
+    try:
+        assert ctx.property("headers")[0] == ("Subject", "native folded")
+        assert ctx.property("message").read_all() == (
+            b"Received: by mx.example.com\r\nSubject: native\r\n\tfolded\r\n"
+            b"Content-Type: application/octet-stream\r\n"
+            b"Content-Transfer-Encoding: base64\r\n\r\nc3ludGhldGlj\r\n"
+        )
+    finally:
+        ctx.property("message").close()
+
+
+@pytest.mark.parametrize(
+    "value", [" value\r\nBcc: injected\r\n", "value\nBcc: injected", "value\r", "value\r\n\r\n"]
+)
+def test_decode_native_header_injection_is_still_rejected(value: str) -> None:
+    with pytest.raises(HeaderInjectionRejected):
+        StalwartCodec().decode_request(
+            {
+                "context": {"stage": "data"},
+                "message": {"headers": [["Subject", value]]},
+            }
+        )
+
+
+@pytest.mark.parametrize("stage", ["auth", "delivery"])
+def test_decode_rejects_stages_not_supported_by_stalwart(stage: str) -> None:
+    with pytest.raises(ValueError, match="Stalwart supports"):
+        StalwartCodec().decode_request({"context": {"stage": stage}})
 
 
 def test_encode_header_add_modification() -> None:
